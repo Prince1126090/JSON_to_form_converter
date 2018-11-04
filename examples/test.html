@@ -1123,6 +1123,7 @@
   $(function() {
             //var form = $("#formDiv").medea(obj);
             var form = $("#formDiv").medea(convertedObj);
+            console.log(JSON.stringify(relevanceArrayGlobal));
             manageReleventInputs();
             //$("select[name~='nation']")
             //$("#formDiv").converter(obj);
@@ -1139,8 +1140,8 @@
   function manageReleventInputs(){
       hideAllDependentInputs();
       var referenceFieldsWithOnChangeEvent = [];
-      for(var i=0; i<relevenceArray.length; i++){
-        var referenceFieldName = relevenceArray[i].referenceField;
+      for(var i=0; i<relevanceArrayGlobal.length; i++){
+        var referenceFieldName = relevanceArrayGlobal[i].referenceField;
         referenceFieldName = referenceFieldName.split("\:")[1];
         var selectedReferenceFieldId = "#"+referenceFieldName+ " option:selected";
 
@@ -1163,9 +1164,9 @@
 
   function showInputDivBasedOnSelection(referenceFieldNameToCompare, selectedText){
     disableDependentInputsOfReferenceField(referenceFieldNameToCompare);
-    for(var i=0; i<relevenceArray.length; i++){
-        var fieldName = relevenceArray[i].fieldName;
-        var matchText = relevenceArray[i].matchValue;
+    for(var i=0; i<relevanceArrayGlobal.length; i++){
+        var fieldName = relevanceArrayGlobal[i].fieldName;
+        var matchText = relevanceArrayGlobal[i].matchValue;
         if(selectedText === matchText){
           showDivOfInputField(fieldName);
         }
@@ -1173,10 +1174,10 @@
   }
 
   function disableDependentInputsOfReferenceField(referenceFieldNameToCompare){
-    for(var i=0; i<relevenceArray.length; i++){
-        var referenceFieldName = relevenceArray[i].referenceField;
+    for(var i=0; i<relevanceArrayGlobal.length; i++){
+        var referenceFieldName = relevanceArrayGlobal[i].referenceField;
         referenceFieldName = referenceFieldName.split("\:")[1];
-        var fieldName = relevenceArray[i].fieldName;
+        var fieldName = relevanceArrayGlobal[i].fieldName;
         if(referenceFieldName===referenceFieldNameToCompare){
         hideDivOfInputField(fieldName);
         }
@@ -1206,8 +1207,8 @@
   }
 
   function hideAllDependentInputs(){
-    for(var i=0; i<relevenceArray.length; i++){
-        var fieldName = relevenceArray[i].fieldName;
+    for(var i=0; i<relevanceArrayGlobal.length; i++){
+        var fieldName = relevanceArrayGlobal[i].fieldName;
         hideDivOfInputField(fieldName);
       }
   }
@@ -1217,12 +1218,15 @@
 	}
 
   
-  var relevenceArray ;
-  function convertForMedea(inputObj){
+  var relevanceArrayGlobal ;
+  var fieldAttributeArrayGlobal;
 
-    var arrayRelevence = [];
-    var dataArray = inputObj.step1.fields;
+  function convertForMedea(inputObj){
+    var fieldAttributeArray = [];
+    var arrayRelevance = [];
     var outputObj = {};
+
+    var dataArray = inputObj.step1.fields;
     for(var i=0; i<dataArray.length; i++){
             var fieldValue = "";
             if (typeof dataArray[i].values !== 'undefined'){
@@ -1230,29 +1234,9 @@
             }
             var fieldType = dataArray[i].type;
             var fieldName = dataArray[i].key;
+
             var openmrsChoiceIds = dataArray[i].openmrs_choice_ids;
             var optionArray = [];
-
-            var relevenceObjFromInput = "";
-            if (typeof dataArray[i].relevance !== 'undefined'){
-                relevenceObjFromInput = dataArray[i].relevance ;
-
-                 for(var prop in relevenceObjFromInput){
-                    var relevenceObj ={};
-                    relevenceObj.referenceField = prop;
-                    relevenceObj.fieldName =  fieldName;
-                    relevenceObj.fieldType = relevenceObjFromInput[prop].type;
-                    var comparisonArray = relevenceObjFromInput[prop].ex.split('\(');
-                    var comparisonString = comparisonArray[0];
-                    relevenceObj.comparison = comparisonString;
-                    var matchStringArray = relevenceObjFromInput[prop].ex.split('\"');
-                    var matchString = matchStringArray[matchStringArray.length-2];
-                    relevenceObj.matchValue = matchString;
-                    arrayRelevence.push(relevenceObj);
-                 }
-                 
-            }
-          
             for(var prop in openmrsChoiceIds){
                 optionArray.push(""+prop+"#"+openmrsChoiceIds[prop]);
             }
@@ -1262,8 +1246,28 @@
               outputObj[fieldName] = "";
             }
             
+            var relevanceObjFromInput = "";
+            if (typeof dataArray[i].relevance !== 'undefined'){
+                relevanceObjFromInput = dataArray[i].relevance ;
+
+                 for(var prop in relevanceObjFromInput){
+                    var relevanceObj ={};
+                    relevanceObj.referenceField = prop;
+                    relevanceObj.fieldName =  fieldName;
+                    relevanceObj.fieldType = relevanceObjFromInput[prop].type;
+                    var comparisonArray = relevanceObjFromInput[prop].ex.split('\(');
+                    var comparisonString = comparisonArray[0];
+                    relevanceObj.comparison = comparisonString;
+                    var matchStringArray = relevanceObjFromInput[prop].ex.split('\"');
+                    var matchString = matchStringArray[matchStringArray.length-2];
+                    relevanceObj.matchValue = matchString;
+                    arrayRelevance.push(relevanceObj);
+                 }
+            }
+          
+           
           }
-           relevenceArray = arrayRelevence;
+           relevanceArrayGlobal = arrayRelevance;
           return outputObj;
   }
 
