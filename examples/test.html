@@ -1123,20 +1123,52 @@
   $(function() {
             //var form = $("#formDiv").medea(obj);
             var form = $("#formDiv").medea(convertedObj);
-            console.log(JSON.stringify(relevanceArrayGlobal));
+            console.log(JSON.stringify(fieldAttributeArrayGlobal));
             manageReleventInputs();
+            manageFieldAttributes();
 
             //$("select[name~='nation']")
             //$("#formDiv").converter(obj);
 
-	/*$("#formDiv").on("medea.submit", function(e, objUp) { 
+	$("#formDiv").on("medea.submit", function(e, objUp) { 
 	alert(JSON.stringify(e));
         alert(JSON.stringify(objUp));
-	alert(objUp.name.firstName);
-    });*/
+	//alert(objUp.name.firstName);
+    });
 
  });
 
+  function manageFieldAttributes(){
+    for(var i=0; i<fieldAttributeArrayGlobal.length; i++){
+        if (typeof fieldAttributeArrayGlobal[i].required !== 'undefined'){
+                var fieldName = fieldAttributeArrayGlobal[i].fieldName;
+                var isRequired = fieldAttributeArrayGlobal[i].required.value;
+                var errorMessage = fieldAttributeArrayGlobal[i].required.err;
+                if(isRequired){
+                addRequiredAttributeToField(fieldName);
+                }
+            }
+        if (typeof fieldAttributeArrayGlobal[i].regex !== 'undefined'){
+                var fieldName = fieldAttributeArrayGlobal[i].fieldName;
+                var regexPattern = fieldAttributeArrayGlobal[i].regex.value;
+                var errorMessage = fieldAttributeArrayGlobal[i].regex.err;
+                addPatternToField(fieldName, regexPattern, errorMessage);
+            }
+      }
+  }
+
+  function addRequiredAttributeToField(fieldName){
+      var fieldNameToAddAttribute = '[name='+fieldName+']';
+      $(fieldNameToAddAttribute).prop('required', true);
+  }
+
+  function addPatternToField(fieldName, regexPattern, errorMessage){
+    var fieldNameToAddPattern = '[name='+fieldName+']';
+    $(fieldNameToAddPattern).attr({
+                'pattern': regexPattern,
+                'title' : errorMessage
+            });
+  }
 
   function manageReleventInputs(){
       hideAllDependentInputs();
@@ -1219,24 +1251,19 @@
 	}
 
   function processRelevanceObj(fieldName, relevanceObjFromInput){
-    //there is only one key in a relevanceObjFromInput
-    //the for loop is used to get the key name. Except that the loop has no other purpose.
-    //console.log(Object.keys(relevanceObjFromInput)[0]);
-    //for(var prop in relevanceObjFromInput){
-          var prop = Object.keys(relevanceObjFromInput)[0];
-          var relevanceObj ={};
-          relevanceObj.referenceField = prop;
-          relevanceObj.fieldName =  fieldName;
-          relevanceObj.fieldType = relevanceObjFromInput[prop].type;
-          var comparisonArray = relevanceObjFromInput[prop].ex.split('\(');
-          var comparisonString = comparisonArray[0];
-          relevanceObj.comparison = comparisonString;
-          var matchStringArray = relevanceObjFromInput[prop].ex.split('\"');
-          var matchString = matchStringArray[matchStringArray.length-2];
-          relevanceObj.matchValue = matchString;
-          console.log(JSON.stringify(relevanceObj));
-          return relevanceObj;
-       //}
+    var prop = Object.keys(relevanceObjFromInput)[0];
+    var relevanceObj ={};
+    relevanceObj.referenceField = prop;
+    relevanceObj.fieldName =  fieldName;
+    relevanceObj.fieldType = relevanceObjFromInput[prop].type;
+    var comparisonArray = relevanceObjFromInput[prop].ex.split('\(');
+    var comparisonString = comparisonArray[0];
+    relevanceObj.comparison = comparisonString;
+    var matchStringArray = relevanceObjFromInput[prop].ex.split('\"');
+    var matchString = matchStringArray[matchStringArray.length-2];
+    relevanceObj.matchValue = matchString;
+    console.log(JSON.stringify(relevanceObj));
+    return relevanceObj;
   }
 
   
@@ -1271,28 +1298,33 @@
             var relevanceObjFromInput = "";
             if (typeof dataArray[i].relevance !== 'undefined'){
                 relevanceObjFromInput = dataArray[i].relevance ;
-                 //console.log(JSON.stringify(relevanceObjFromInput));
-                 /*for(var prop in relevanceObjFromInput){
-                    console.log(JSON.stringify(prop));
-                    var relevanceObj ={};
-                    relevanceObj.referenceField = prop;
-                    relevanceObj.fieldName =  fieldName;
-                    relevanceObj.fieldType = relevanceObjFromInput[prop].type;
-                    var comparisonArray = relevanceObjFromInput[prop].ex.split('\(');
-                    var comparisonString = comparisonArray[0];
-                    relevanceObj.comparison = comparisonString;
-                    var matchStringArray = relevanceObjFromInput[prop].ex.split('\"');
-                    var matchString = matchStringArray[matchStringArray.length-2];
-                    relevanceObj.matchValue = matchString;
-                    arrayRelevance.push(relevanceObj);
-                 }*/
-                 var relevanceObj = processRelevanceObj(fieldName, relevanceObjFromInput);
-                 arrayRelevance.push(relevanceObj);
+                var relevanceObj = processRelevanceObj(fieldName, relevanceObjFromInput);
+                arrayRelevance.push(relevanceObj);
             }
-          
+
+            //for field attribute
+            var fieldAttribute = {};
+            if (typeof dataArray[i].v_numeric !== 'undefined'){
+                fieldAttribute.fieldName = fieldName;
+                fieldAttribute.numeric = dataArray[i].v_numeric;
+            }
+            if (typeof dataArray[i].v_regex !== 'undefined'){
+                fieldAttribute.fieldName = fieldName;
+                fieldAttribute.regex = dataArray[i].v_regex;
+            }
+            if (typeof dataArray[i].v_required !== 'undefined'){
+                fieldAttribute.fieldName = fieldName;
+                fieldAttribute.required = dataArray[i].v_required;
+            }
+
+            if(Object.keys(fieldAttribute).length>0){
+               fieldAttributeArray.push(fieldAttribute);
+            }
            
+          //end of loop
           }
-           relevanceArrayGlobal = arrayRelevance;
+          relevanceArrayGlobal = arrayRelevance;
+          fieldAttributeArrayGlobal = fieldAttributeArray;
           return outputObj;
   }
 

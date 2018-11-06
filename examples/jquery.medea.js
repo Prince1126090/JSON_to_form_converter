@@ -191,7 +191,13 @@ window.Medea = (function($) {
         });
 
         buttonWrapperRight.append(cancelButton);
-
+        //for submit button 
+        var submitBtn = $("<button>")
+            .attr("type", "submit")
+            .addClass("btn")
+            .html("Submit")
+            .attr("id", "medea-submit-btn");
+        //end submit button
         var okButton = button("primary")
             .html("ok")
             //.addClass("btn-block")
@@ -204,7 +210,9 @@ window.Medea = (function($) {
             var result = container.triggerHandler(events.MEDEA_SUBMITTED, [ processedObject ]);
         });
 
-        buttonWrapperRight.append(okButton);
+        //buttonWrapperRight.append(okButton);
+        //submit button is added to check pattern and required
+        buttonWrapperRight.append(submitBtn);
 
         buttonRowWrapper.append(buttonWrapperLeft);
         buttonRowWrapper.append(buttonWrapperRight);
